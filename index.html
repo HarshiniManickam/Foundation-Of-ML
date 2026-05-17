@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bird Biodiversity Classifier</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=Lato:wght@300;400;700&display=swap');
+
+  :root {
+    --cream: #f5f0e8;
+    --bark: #2c1a0e;
+    --moss: #3d5a2e;
+    --moss-light: #5a8042;
+    --sky: #7eb8d4;
+    --gold: #c9a84c;
+    --rust: #a84c2e;
+    --feather: #e8dcc8;
+    --ink: #1a1209;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--cream);
+    color: var(--ink);
+    font-family: 'Lato', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── HEADER ─────────────────────────── */
+  header {
+    background: var(--bark);
+    padding: 0 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+
+  .nav-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--sky);
+    background: rgba(126,184,212,0.15);
+    border: 1px solid rgba(126,184,212,0.3);
+    padding: 4px 10px;
+    border-radius: 3px;
+    letter-spacing: 2px;
+  }
+
+  /* ─── HERO ───────────────────────────── */
+  .hero {
+    position: relative;
+    padding: 60px 3rem 40px;
+    background: linear-gradient(160deg, var(--bark) 0%, #3d2010 50%, var(--moss) 100%);
+    overflow: hidden;
+  }
+
+  .hero-bg-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f5f0e8' fill-opacity='1'%3E%3Cpath d='M30 5 C20 5 10 15 10 25 C10 35 20 45 30 55 C40 45 50 35 50 25 C50 15 40 5 30 5Z'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 60px 60px;
+  }
+
+  .hero-content {
+    position: relative;
+    max-width: 700px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--sky);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 4vw, 3.4rem);
+    color: var(--cream);
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .hero-desc {
+    color: rgba(245,240,232,0.7);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    max-width: 560px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(245,240,232,0.5);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ─── PIPELINE STRIP ────────────────── */
+  .pipeline {
+    background: var(--feather);
+    border-top: 3px solid var(--gold);
+    border-bottom: 1px solid rgba(44,26,14,0.1);
+    padding: 18px 3rem;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .pipe-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pipe-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .pipe-dot.active { background: var(--moss); }
+  .pipe-dot.done   { background: var(--gold); }
+  .pipe-dot.idle   { background: rgba(44,26,14,0.2); color: var(--bark); }
+
+  .pipe-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--bark);
+    letter-spacing: 1px;
+  }
+
+  .pipe-arrow {
+    width: 28px;
+    text-align: center;
+    color: rgba(44,26,14,0.3);
+    font-size: 1rem;
+  }
+
+  /* ─── MAIN LAYOUT ────────────────────── */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 3rem;
+    align-items: start;
+  }
+
+  /* ─── UPLOAD PANEL ───────────────────── */
+  .upload-panel {
+    padding-right: 40px;
+    border-right: 1px solid rgba(44,26,14,0.12);
+  }
+
+  .panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--bark);
+    margin-bottom: 6px;
+  }
+
+  .panel-sub {
+    font-size: 0.82rem;
+    color: rgba(44,26,14,0.5);
+    margin-bottom: 24px;
+  }
+
+  .drop-zone {
+    border: 2px dashed rgba(44,26,14,0.2);
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: rgba(255,255,255,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--moss);
+    background: rgba(61,90,46,0.05);
+  }
+
+  .drop-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    opacity: 0.5;
+  }
+
+  .drop-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    color: var(--bark);
+    margin-bottom: 6px;
+  }
+
+  .drop-sub {
+    font-size: 0.78rem;
+    color: rgba(44,26,14,0.45);
+    font-family: 'DM Mono', monospace;
+  }
+
+  #file-input { display: none; }
+
+  .upload-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 14px;
+    background: var(--moss);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .upload-btn:hover { background: var(--moss-light); transform: translateY(-1px); }
+  .upload-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+  /* ─── IMAGE PREVIEW ──────────────────── */
+  .image-preview {
+    margin-top: 24px;
+    display: none;
+    position: relative;
+  }
+
+  .image-preview img {
+    width: 100%;
+    border-radius: 10px;
+    border: 3px solid var(--gold);
+    display: block;
+    max-height: 320px;
+    object-fit: cover;
+  }
+
+  .preview-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  /* ─── RESULTS PANEL ──────────────────── */
+  .results-panel {
+    padding-left: 40px;
+  }
+
+  .result-placeholder {
+    padding: 60px 20px;
+    text-align: center;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.3);
+    border: 1px solid rgba(44,26,14,0.08);
+  }
+
+  .placeholder-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    opacity: 0.2;
+  }
+
+  .placeholder-text {
+    font-family: 'Playfair Display', serif;
+    color: rgba(44,26,14,0.4);
+    font-size: 1rem;
+  }
+
+  /* ─── RESULT CARD ────────────────────── */
+  .result-card {
+    display: none;
+    animation: fadeSlide 0.4s ease;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .species-badge {
+    background: var(--bark);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .species-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(201,168,76,0.2));
+  }
+
+  .species-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--sky);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .species-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--cream);
+    line-height: 1.2;
+    margin-bottom: 14px;
+  }
+
+  .confidence-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .confidence-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .confidence-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sky), var(--gold));
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .confidence-pct {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--gold);
+    font-weight: 700;
+    min-width: 52px;
+    text-align: right;
+  }
+
+  /* ─── BIODIVERSITY INFO ──────────────── */
+  .bio-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .bio-card {
+    background: white;
+    border: 1px solid rgba(44,26,14,0.1);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .bio-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    color: rgba(44,26,14,0.4);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .bio-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    color: var(--bark);
+    font-weight: 700;
+  }
+
+  /* ─── TOP-5 ──────────────────────────── */
+  .top5-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(44,26,14,0.5);
+    margin-bottom: 12px;
+  }
+
+  .top5-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .top5-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid rgba(44,26,14,0.08);
+    transition: all 0.2s;
+  }
+
+  .top5-item:first-child {
+    background: rgba(61,90,46,0.06);
+    border-color: rgba(61,90,46,0.2);
+  }
+
+  .top5-rank {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(44,26,14,0.35);
+    min-width: 20px;
+  }
+
+  .top5-name {
+    flex: 1;
+    font-size: 0.83rem;
+    color: var(--bark);
+    font-weight: 400;
+  }
+
+  .top5-bar-wrap {
+    width: 70px;
+    height: 4px;
+    background: rgba(44,26,14,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .top5-bar {
+    height: 100%;
+    background: var(--moss);
+    border-radius: 2px;
+  }
+
+  .top5-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--moss);
+    min-width: 38px;
+    text-align: right;
+  }
+
+  /* ─── FEATURE ANALYSIS ───────────────── */
+  .feature-section {
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: white;
+    border: 1px solid rgba(44,26,14,0.1);
+    border-radius: 10px;
+  }
+
+  .feature-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: rgba(44,26,14,0.4);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .feature-bars { display: flex; flex-direction: column; gap: 8px; }
+
+  .feature-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .feature-name {
+    font-size: 0.75rem;
+    color: var(--bark);
+    min-width: 110px;
+  }
+
+  .feature-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: rgba(44,26,14,0.08);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .feature-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  .feature-fill.gabor { background: linear-gradient(90deg, #7eb8d4, #5a8042); }
+  .feature-fill.hog   { background: linear-gradient(90deg, #c9a84c, #a84c2e); }
+  .feature-fill.color { background: linear-gradient(90deg, #a84c7e, #c9a84c); }
+
+  .feature-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(44,26,14,0.4);
+    min-width: 32px;
+    text-align: right;
+  }
+
+  /* ─── LOADING ────────────────────────── */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(245,240,232,0.9);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .loading-overlay.active { display: flex; }
+
+  .loader-bird {
+    width: 70px;
+    height: 70px;
+    animation: flap 0.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes flap {
+    from { transform: scaleY(1) rotate(-3deg); }
+    to   { transform: scaleY(0.85) rotate(3deg); }
+  }
+
+  .loader-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--bark);
+  }
+
+  .loader-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: rgba(44,26,14,0.45);
+    letter-spacing: 2px;
+  }
+
+  /* ─── MODEL INFO STRIP ───────────────── */
+  .model-strip {
+    background: var(--bark);
+    padding: 14px 3rem;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .model-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .chip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+
+  .chip-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(245,240,232,0.6);
+    letter-spacing: 1px;
+  }
+
+  .chip-text strong {
+    color: var(--cream);
+    font-weight: 500;
+  }
+
+  /* ─── FOOTER ─────────────────────────── */
+  footer {
+    background: var(--feather);
+    border-top: 1px solid rgba(44,26,14,0.1);
+    padding: 20px 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(44,26,14,0.4);
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 768px) {
+    .main { grid-template-columns: 1fr; }
+    .upload-panel { padding-right: 0; border-right: none; border-bottom: 1px solid rgba(44,26,14,0.12); padding-bottom: 32px; }
+    .results-panel { padding-left: 0; padding-top: 32px; }
+    .hero { padding: 40px 1.5rem; }
+    .pipeline { padding: 14px 1.5rem; }
+    .main { padding: 30px 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading">
+  <svg class="loader-bird" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M40 60 C25 60 10 48 8 32 C6 20 14 10 26 8 C20 18 22 30 32 36 C28 26 30 14 40 12 C50 14 52 26 48 36 C58 30 60 18 54 8 C66 10 74 20 72 32 C70 48 55 60 40 60Z" fill="#3d5a2e"/>
+    <path d="M25 60 Q40 75 55 60" stroke="#c9a84c" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <circle cx="32" cy="26" r="3" fill="#7eb8d4"/>
+    <circle cx="48" cy="26" r="3" fill="#7eb8d4"/>
+  </svg>
+  <div class="loader-text">Analyzing Plumage Patterns</div>
+  <div class="loader-sub" id="loading-step">APPLYING GABOR FILTER BANK…</div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <svg class="logo-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 28 C11 28 4 22 3 14 C2 8 6 3 12 2 C9 8 10 15 16 18 C13 11 14 5 18 4 C22 5 23 11 20 18 C26 15 27 8 24 2 C30 3 34 8 33 14 C32 22 25 28 18 28Z" fill="#c9a84c"/>
+      <path d="M11 28 Q18 36 25 28" stroke="#7eb8d4" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    </svg>
+    <span class="logo-text">AviBio · Classifier</span>
+  </div>
+  <span class="nav-badge">CUB-200-2011 · SVM + GABOR</span>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-pattern"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">AI-Powered Ornithology</div>
+    <h1 class="hero-title">Identify Bird<br><em>Biodiversity</em><br>From Images</h1>
+    <p class="hero-desc">
+      Upload a bird photograph to classify its species using a Support Vector Machine
+      trained with Gabor Filter Bank plumage texture features, HOG shape descriptors,
+      and HSV color histograms — across 200 species.
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-val">200</span><span class="stat-label">Species</span></div>
+      <div class="stat"><span class="stat-val">11,788</span><span class="stat-label">Train Images</span></div>
+      <div class="stat"><span class="stat-val">32</span><span class="stat-label">Gabor Filters</span></div>
+      <div class="stat"><span class="stat-val">SVM</span><span class="stat-label">Classifier</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE STRIP -->
+<div class="pipeline">
+  <div class="pipe-step">
+    <div class="pipe-dot done">1</div>
+    <span class="pipe-label">PREPROCESS</span>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-dot done">2</div>
+    <span class="pipe-label">GABOR FEATURES</span>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-dot done">3</div>
+    <span class="pipe-label">HOG + COLOR</span>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-dot done">4</div>
+    <span class="pipe-label">PCA SELECTION</span>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-dot active">5</div>
+    <span class="pipe-label">SVM CLASSIFY</span>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-dot idle">6</div>
+    <span class="pipe-label">RESULT</span>
+  </div>
+</div>
+
+<!-- MODEL INFO -->
+<div class="model-strip">
+  <div class="model-chip"><div class="chip-dot"></div><span class="chip-text"><strong>Gabor Bank</strong> · 4 freq × 8 orient = 32 filters</span></div>
+  <div class="model-chip"><div class="chip-dot"></div><span class="chip-text"><strong>SVM</strong> · RBF Kernel · OVR Multiclass</span></div>
+  <div class="model-chip"><div class="chip-dot"></div><span class="chip-text"><strong>PCA</strong> · 200 components (Feature Selection)</span></div>
+  <div class="model-chip"><div class="chip-dot"></div><span class="chip-text"><strong>CLAHE</strong> · Contrast-enhanced preprocessing</span></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+  <!-- UPLOAD PANEL -->
+  <div class="upload-panel">
+    <h2 class="panel-title">Upload Bird Image</h2>
+    <p class="panel-sub">JPG, PNG, WEBP — any bird photograph</p>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <svg class="drop-icon" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M28 42 C18 42 8 34 7 22 C6 14 12 6 20 5 C16 13 17 23 24 28 C20 18 22 8 28 6 C34 8 36 18 32 28 C39 23 40 13 36 5 C44 6 50 14 49 22 C48 34 38 42 28 42Z" fill="#3d5a2e" opacity="0.4"/>
+        <path d="M18 42 Q28 52 38 42" stroke="#c9a84c" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.4"/>
+        <path d="M28 20 L28 34 M22 28 L28 34 L34 28" stroke="#2c1a0e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/>
+      </svg>
+      <div class="drop-text">Drop a bird image here</div>
+      <div class="drop-sub">or click to browse files</div>
+    </div>
+
+    <input type="file" id="file-input" accept="image/*">
+
+    <div class="image-preview" id="image-preview">
+      <img id="preview-img" src="" alt="Preview">
+      <span class="preview-badge">READY TO CLASSIFY</span>
+    </div>
+
+    <button class="upload-btn" id="classify-btn" onclick="classifyImage()" disabled>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.5"/>
+        <path d="M5 8 L7.5 10.5 L11 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      CLASSIFY SPECIES
+    </button>
+  </div>
+
+  <!-- RESULTS PANEL -->
+  <div class="results-panel">
+    <!-- Placeholder -->
+    <div class="result-placeholder" id="placeholder">
+      <svg class="placeholder-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 52 C20 52 8 42 7 28 C6 18 14 8 24 6 C19 16 21 28 30 34 C25 22 27 10 32 8 C37 10 39 22 34 34 C43 28 45 16 40 6 C50 8 58 18 57 28 C56 42 44 52 32 52Z" fill="#2c1a0e"/>
+        <path d="M20 52 Q32 62 44 52" stroke="#c9a84c" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+      <p class="placeholder-text">Upload an image to identify<br>bird species & biodiversity</p>
+    </div>
+
+    <!-- Result Card -->
+    <div class="result-card" id="result-card">
+
+      <!-- Species Badge -->
+      <div class="species-badge">
+        <div class="species-eyebrow">Identified Species</div>
+        <div class="species-name" id="result-name">—</div>
+        <div class="confidence-row">
+          <div class="confidence-bar-wrap">
+            <div class="confidence-bar" id="conf-bar" style="width:0%"></div>
+          </div>
+          <div class="confidence-pct" id="conf-pct">—</div>
+        </div>
+      </div>
+
+      <!-- Biodiversity Info -->
+      <div class="bio-grid">
+        <div class="bio-card">
+          <div class="bio-label">Order</div>
+          <div class="bio-value" id="bio-order">Passeriformes</div>
+        </div>
+        <div class="bio-card">
+          <div class="bio-label">Family</div>
+          <div class="bio-value" id="bio-family">Aves</div>
+        </div>
+        <div class="bio-card">
+          <div class="bio-label">Conservation</div>
+          <div class="bio-value" id="bio-conservation">LC</div>
+        </div>
+        <div class="bio-card">
+          <div class="bio-label">Class ID</div>
+          <div class="bio-value" id="bio-class">—</div>
+        </div>
+      </div>
+
+      <!-- Feature Analysis -->
+      <div class="feature-section">
+        <div class="feature-title">Feature Contribution Analysis</div>
+        <div class="feature-bars">
+          <div class="feature-row">
+            <span class="feature-name">Gabor Texture</span>
+            <div class="feature-bar-bg"><div class="feature-fill gabor" id="feat-gabor" style="width:0%"></div></div>
+            <span class="feature-pct" id="feat-gabor-pct">—</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-name">HOG Shape</span>
+            <div class="feature-bar-bg"><div class="feature-fill hog" id="feat-hog" style="width:0%"></div></div>
+            <span class="feature-pct" id="feat-hog-pct">—</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-name">Plumage Color</span>
+            <div class="feature-bar-bg"><div class="feature-fill color" id="feat-color" style="width:0%"></div></div>
+            <span class="feature-pct" id="feat-color-pct">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top-5 Predictions -->
+      <div style="margin-top:20px">
+        <div class="top5-title">Top-5 Species Candidates</div>
+        <div class="top5-list" id="top5-list"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span class="footer-text">CUB-200-2011 · Caltech-UCSD Birds Dataset</span>
+  <span class="footer-text">SVM · RBF KERNEL · GABOR FILTER BANK · PCA-200</span>
+</footer>
+
+<script>
+// ─── Bird biodiversity database (subset for demo) ────────────────────────
+const BIRD_DB = {
+  "001.Black_footed_Albatross":     { order:"Procellariiformes", family:"Diomedeidae", conservation:"LC" },
+  "002.Laysan_Albatross":           { order:"Procellariiformes", family:"Diomedeidae", conservation:"NT" },
+  "007.Parakeet_Auklet":            { order:"Charadriiformes",   family:"Alcidae",     conservation:"LC" },
+  "010.Red_winged_Blackbird":       { order:"Passeriformes",     family:"Icteridae",   conservation:"LC" },
+  "014.Indigo_Bunting":             { order:"Passeriformes",     family:"Cardinalidae",conservation:"LC" },
+  "017.Cardinal":                   { order:"Passeriformes",     family:"Cardinalidae",conservation:"LC" },
+  "026.Bronzed_Cowbird":            { order:"Passeriformes",     family:"Icteridae",   conservation:"LC" },
+  "029.American_Crow":              { order:"Passeriformes",     family:"Corvidae",    conservation:"LC" },
+  "033.Yellow_billed_Cuckoo":       { order:"Cuculiformes",      family:"Cuculidae",   conservation:"LC" },
+  "036.Northern_Flicker":           { order:"Piciformes",        family:"Picidae",     conservation:"LC" },
+  "040.Acadian_Flycatcher":         { order:"Passeriformes",     family:"Tyrannidae",  conservation:"LC" },
+  "055.Evening_Grosbeak":           { order:"Passeriformes",     family:"Fringillidae",conservation:"LC" },
+  "081.Pied_Kingfisher":            { order:"Coraciiformes",     family:"Alcedinidae", conservation:"LC" },
+  "087.Mallard":                    { order:"Anseriformes",      family:"Anatidae",    conservation:"LC" },
+  "097.Orchard_Oriole":             { order:"Passeriformes",     family:"Icteridae",   conservation:"LC" },
+};
+
+function getBioInfo(speciesKey) {
+  for (const [key, val] of Object.entries(BIRD_DB)) {
+    if (speciesKey.toLowerCase().includes(key.split(".")[1].toLowerCase().replace(/_/g," ").toLowerCase().split(" ")[0].toLowerCase())) {
+      return val;
+    }
+  }
+  return { order:"Passeriformes", family:"Passeridae", conservation:"LC" };
+}
+
+// ─── Simulated model pipeline (replace with actual backend call) ─────────
+const ALL_SPECIES = [
+  "001.Black_footed_Albatross","002.Laysan_Albatross","003.Sooty_Albatross",
+  "004.Groove_billed_Ani","005.Crested_Auklet","006.Least_Auklet",
+  "007.Parakeet_Auklet","008.Rhinoceros_Auklet","009.Brewer_Blackbird",
+  "010.Red_winged_Blackbird","011.Rusty_Blackbird","012.Yellow_headed_Blackbird",
+  "013.Bobolink","014.Indigo_Bunting","015.Lazuli_Bunting",
+  "016.Painted_Bunting","017.Cardinal","018.Spotted_Catbird",
+  "019.Gray_Catbird","020.Yellow_breasted_Chat","021.Eastern_Towhee",
+  "022.Chuck_will_Widow","023.Brandt_Cormorant","024.Red_faced_Cormorant",
+  "025.Pelagic_Cormorant","026.Bronzed_Cowbird","027.Shiny_Cowbird",
+  "028.Brown_Creeper","029.American_Crow","030.Fish_Crow"
+];
+
+function simulateClassification(imageData) {
+  return new Promise((resolve) => {
+    const steps = [
+      "APPLYING CLAHE ENHANCEMENT…",
+      "RUNNING GABOR FILTER BANK (32 FILTERS)…",
+      "COMPUTING HOG DESCRIPTORS…",
+      "BUILDING HSV COLOR HISTOGRAM…",
+      "APPLYING PCA DIMENSIONALITY REDUCTION…",
+      "RUNNING SVM CLASSIFICATION…",
+      "COMPUTING CONFIDENCE SCORES…"
+    ];
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < steps.length) {
+        document.getElementById('loading-step').textContent = steps[i++];
+      } else {
+        clearInterval(interval);
+        // Generate simulated result
+        const topIdx = Math.floor(Math.random() * ALL_SPECIES.length);
+        const top5 = [];
+        const usedIdx = new Set([topIdx]);
+        let conf = 72 + Math.random() * 20;
+
+        top5.push({ species: ALL_SPECIES[topIdx], confidence: conf });
+        conf *= (0.4 + Math.random() * 0.25);
+
+        for (let j = 1; j < 5; j++) {
+          let idx;
+          do { idx = Math.floor(Math.random() * ALL_SPECIES.length); } while(usedIdx.has(idx));
+          usedIdx.add(idx);
+          top5.push({ species: ALL_SPECIES[idx], confidence: conf * (0.5 + Math.random() * 0.4) });
+          conf *= 0.6;
+        }
+
+        resolve({
+          top_species: ALL_SPECIES[topIdx],
+          confidence: top5[0].confidence,
+          class_id: topIdx + 1,
+          top5: top5,
+          features: {
+            gabor: 55 + Math.random() * 20,
+            hog:   20 + Math.random() * 15,
+            color: 10 + Math.random() * 15
+          }
+        });
+      }
+    }, 320);
+  });
+}
+
+// ─── File upload handling ─────────────────────────────────────────────────
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+let currentFile = null;
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+function handleFile(file) {
+  if (!file.type.startsWith('image/')) { alert('Please upload an image file.'); return; }
+  currentFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('image-preview');
+    const img     = document.getElementById('preview-img');
+    img.src = e.target.result;
+    preview.style.display = 'block';
+    document.getElementById('classify-btn').disabled = false;
+
+    // Reset results
+    document.getElementById('placeholder').style.display = 'flex';
+    document.getElementById('result-card').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── Classification ───────────────────────────────────────────────────────
+async function classifyImage() {
+  if (!currentFile) return;
+
+  const loading = document.getElementById('loading');
+  loading.classList.add('active');
+
+  try {
+    const result = await simulateClassification(currentFile);
+    loading.classList.remove('active');
+    displayResult(result);
+  } catch(err) {
+    loading.classList.remove('active');
+    alert('Classification failed. Please try again.');
+  }
+}
+
+function displayResult(result) {
+  document.getElementById('placeholder').style.display = 'none';
+  const card = document.getElementById('result-card');
+  card.style.display = 'block';
+
+  // Format species name
+  const rawName = result.top_species;
+  const cleanName = rawName.split(".")[1].replace(/_/g, " ");
+
+  document.getElementById('result-name').textContent = cleanName;
+  document.getElementById('conf-pct').textContent = result.confidence.toFixed(1) + '%';
+
+  setTimeout(() => {
+    document.getElementById('conf-bar').style.width = result.confidence + '%';
+  }, 100);
+
+  // Bio info
+  const bio = getBioInfo(rawName);
+  document.getElementById('bio-order').textContent        = bio.order;
+  document.getElementById('bio-family').textContent       = bio.family;
+  document.getElementById('bio-conservation').textContent = bio.conservation;
+  document.getElementById('bio-class').textContent        = `#${String(result.class_id).padStart(3,'0')}`;
+
+  // Feature contributions
+  const total = result.features.gabor + result.features.hog + result.features.color;
+  const gPct = (result.features.gabor / total * 100).toFixed(0);
+  const hPct = (result.features.hog   / total * 100).toFixed(0);
+  const cPct = (result.features.color / total * 100).toFixed(0);
+
+  setTimeout(() => {
+    document.getElementById('feat-gabor').style.width = gPct + '%';
+    document.getElementById('feat-hog').style.width   = hPct + '%';
+    document.getElementById('feat-color').style.width = cPct + '%';
+  }, 200);
+
+  document.getElementById('feat-gabor-pct').textContent = gPct + '%';
+  document.getElementById('feat-hog-pct').textContent   = hPct + '%';
+  document.getElementById('feat-color-pct').textContent = cPct + '%';
+
+  // Top-5 list
+  const list = document.getElementById('top5-list');
+  list.innerHTML = '';
+  result.top5.forEach((item, i) => {
+    const name = item.species.split(".")[1].replace(/_/g," ");
+    const pct  = Math.max(item.confidence, 0.5).toFixed(1);
+    const barW = Math.min(item.confidence, 100);
+    list.innerHTML += `
+      <div class="top5-item">
+        <span class="top5-rank">#${i+1}</span>
+        <span class="top5-name">${name}</span>
+        <div class="top5-bar-wrap"><div class="top5-bar" style="width:${barW}%"></div></div>
+        <span class="top5-pct">${pct}%</span>
+      </div>`;
+  });
+}
+</script>
+</body>
+</html>

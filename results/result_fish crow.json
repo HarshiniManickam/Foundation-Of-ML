@@ -1,0 +1,17 @@
+{
+  "image_path": "/Users/harshini/Desktop/fish crow.png",
+  "species": "American Crow",
+  "confidence": 72.99,
+  "class_id": 29,
+  "biodiversity": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Aves",
+    "order": "Charadriiformes (Shorebirds)",
+    "family": "See eBird/GBIF for full taxonomy",
+    "genus": "American",
+    "species": "American Crow",
+    "dataset": "CUB-200-2011",
+    "note": "CUB-200-2011 contains 200 North American bird species."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "image_path": "C:\\Users\\Uma\\Downloads\\download (1).jpg",
+  "species": "Black footed Albatross",
+  "confidence": 62.92,
+  "class_id": 1,
+  "biodiversity": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Aves",
+    "order": "Procellariiformes (Tubenoses)",
+    "family": "See eBird/GBIF for full taxonomy",
+    "genus": "Black",
+    "species": "Black footed Albatross",
+    "dataset": "CUB-200-2011",
+    "note": "CUB-200-2011 contains 200 North American bird species."
+  }
+}

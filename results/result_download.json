@@ -1,0 +1,17 @@
+{
+  "image_path": "D:\\test\\AI Projects\\download.jpg",
+  "species": "Common Tern",
+  "confidence": 14.76,
+  "class_id": 144,
+  "biodiversity": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Aves",
+    "order": "Columbiformes (Doves & Pigeons)",
+    "family": "See eBird/GBIF for full taxonomy",
+    "genus": "Common",
+    "species": "Common Tern",
+    "dataset": "CUB-200-2011",
+    "note": "CUB-200-2011 contains 200 North American bird species."
+  }
+}
